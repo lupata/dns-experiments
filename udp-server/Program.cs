@@ -9,21 +9,32 @@ namespace udp_server
     {
         static void Main(string[] args)
         {
+            string message = args[0];
+
             while (true)
             {
                 try
                 {
                     UdpClient server = new UdpClient(6653);
                     IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
+
                     Console.WriteLine(" waiting");
+
                     Byte[] raw = server.Receive(ref remote);
                     string received = Encoding.ASCII.GetString(raw);
                     Console.WriteLine(" received: " + received);
                     Console.WriteLine(" from: " + remote.Address.ToString() + ":" + remote.Port.ToString());
+
+                    raw = Encoding.ASCII.GetBytes(
+                        remote.Address.ToString() + ":" + remote.Port.ToString()
+                        + " " + received + " -> " + message);
+
+                    int send = server.Send(raw, raw.Length, remote);
+                    Console.WriteLine(" send bytes: " + send.ToString());
+
                     server.Close();
-                }
-                catch (Exception e)
-                {
+
+                } catch (Exception e) {
                     Console.WriteLine(e.ToString());
                 }
             }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "dig": {
+      "commandName": "Project",
+      "commandLineArgs": "localhost www.heise.de"
+    }
+  }
+}

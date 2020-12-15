@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "udp-client": {
+      "commandName": "Project",
+      "commandLineArgs": "localhost huhu"
+    }
+  }
+}

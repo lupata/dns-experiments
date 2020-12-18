@@ -9,6 +9,10 @@ namespace udp_client
     class Program
     {
       
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             string server = args[0];
@@ -20,13 +24,7 @@ namespace udp_client
                     UdpClient client = (UdpClient)ar.AsyncState;
                     IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
                     byte[] raw = Encoding.ASCII.GetBytes("connection error");
-                    try
-                    {
-                        raw = client.EndReceive(ar, ref remote);
-                    } catch (Exception e) {
-                        // it might be that ICMP messages are generated, ignoe it
-                        Console.WriteLine(e.ToString());
-                    }
+                    raw = client.EndReceive(ar, ref remote);
                     client.BeginReceive(new AsyncCallback(Receive), client);
 
                     string received = Encoding.ASCII.GetString(raw);
@@ -38,23 +36,19 @@ namespace udp_client
             }
 
             try {
-                UdpClient client = new UdpClient(0); // an appropriate local port number is assigned
+                UdpClient client = new UdpClient(); // an appropriate local port number is assigned
 
                 // client.BeginReceive(new AsyncCallback(Receive), client);
 
                 for (int i=0; i<count; ++i) {
                     Byte[] raw = Encoding.ASCII.GetBytes(i.ToString());
-                    client.Send(raw, raw.Length, server, 6653);
-
-                    IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
-                    raw = client.Receive(ref remote);
-  
-                    string received = Encoding.ASCII.GetString(raw);
-                    Console.WriteLine(" received: " + received);
+                    client.Send(raw, raw.Length, server, 6653);                
                 }
 
+                client.BeginReceive(new AsyncCallback(Receive), client);
+
                 // Thread.Sleep(1000);
-                // Console.ReadKey();
+                Console.ReadKey();
                 client.Close();
 
             } catch (Exception e) {

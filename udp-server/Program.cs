@@ -11,11 +11,12 @@ namespace udp_server
         {
             string message = args[0];
 
+            UdpClient server = new UdpClient(6653);
+
             while (true)
             {
                 try
                 {
-                    UdpClient server = new UdpClient(6653);
                     IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
 
                     Console.WriteLine(" waiting");
@@ -32,12 +33,12 @@ namespace udp_server
                     int send = server.Send(raw, raw.Length, remote);
                     Console.WriteLine(" send bytes: " + send.ToString());
 
-                    server.Close();
-
                 } catch (Exception e) {
                     Console.WriteLine(e.ToString());
                 }
             }
+
+            server.Close();
         }
     }
 }

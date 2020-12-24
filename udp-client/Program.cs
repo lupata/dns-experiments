@@ -2,13 +2,12 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 
 namespace udp_client
 {
     class Program
     {
-      
+
         /// <summary>
         /// 
         /// </summary>
@@ -20,7 +19,8 @@ namespace udp_client
 
             static void Receive(IAsyncResult ar)
             {
-                try {
+                try
+                {
                     UdpClient client = (UdpClient)ar.AsyncState;
                     IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
                     byte[] raw = Encoding.ASCII.GetBytes("connection error");
@@ -30,19 +30,22 @@ namespace udp_client
                     string received = Encoding.ASCII.GetString(raw);
                     Console.WriteLine(" received: " + received);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Console.WriteLine(e.ToString());
                 }
             }
 
-            try {
+            try
+            {
                 UdpClient client = new UdpClient(); // an appropriate local port number is assigned
 
                 // client.BeginReceive(new AsyncCallback(Receive), client);
 
-                for (int i=0; i<count; ++i) {
+                for (int i = 0; i < count; ++i)
+                {
                     Byte[] raw = Encoding.ASCII.GetBytes(i.ToString());
-                    client.Send(raw, raw.Length, server, 6653);                
+                    client.Send(raw, raw.Length, server, 6653);
                 }
 
                 client.BeginReceive(new AsyncCallback(Receive), client);
@@ -51,7 +54,9 @@ namespace udp_client
                 Console.ReadKey();
                 client.Close();
 
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine(e.ToString());
             }
         }

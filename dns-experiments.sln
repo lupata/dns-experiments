@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "udp-client", "udp-client\ud
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "udp-server", "udp-server\udp-server.csproj", "{56ABD536-AAAB-4D54-8A25-1A631AE15017}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dns", "Dns\Dns.csproj", "{20248A57-FD22-4B23-96B6-8FBEE217701C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dns", "Dns\Dns.csproj", "{20248A57-FD22-4B23-96B6-8FBEE217701C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnsTests", "DnsTests\DnsTests.csproj", "{7294874A-AF96-45C9-A484-D5C5ED5DF502}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{20248A57-FD22-4B23-96B6-8FBEE217701C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20248A57-FD22-4B23-96B6-8FBEE217701C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20248A57-FD22-4B23-96B6-8FBEE217701C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7294874A-AF96-45C9-A484-D5C5ED5DF502}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7294874A-AF96-45C9-A484-D5C5ED5DF502}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7294874A-AF96-45C9-A484-D5C5ED5DF502}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7294874A-AF96-45C9-A484-D5C5ED5DF502}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

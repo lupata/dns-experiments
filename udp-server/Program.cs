@@ -33,7 +33,9 @@ namespace udp_server
                     int send = server.Send(raw, raw.Length, remote);
                     Console.WriteLine(" send bytes: " + send.ToString());
 
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     Console.WriteLine(e.ToString());
                 }
             }

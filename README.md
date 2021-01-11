@@ -1,3 +1,3 @@
 # dns-experiments
-don't expecting clean or even working code here :-)
+don't expect clean or even working code here :-)
 

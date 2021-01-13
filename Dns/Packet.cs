@@ -42,17 +42,28 @@ namespace Dns
             return bytes.ToArray();
         }
 
-        public void FromBytes(ref byte[] bytes)
+        public Packet()
+        {
+
+        }
+        public Packet(ref byte[] bytes)
         {
             if (bytes.Length < 12) return;
 
             ID = (ushort)((bytes[0] << 8) | bytes[1]);
             Flags.Data = (ushort)((bytes[2] << 8) | bytes[3]);
-            var question = (ushort)((bytes[4] << 8) | bytes[5]);
-            var answer = (ushort)((bytes[6] << 8) | bytes[7]);
-            var authoritie = (ushort)((bytes[8] << 8) | bytes[9]);
-            var additional = (ushort)((bytes[10] << 8) | bytes[11]);
+            var questions = (ushort)((bytes[4] << 8) | bytes[5]);
+            var answers = (ushort)((bytes[6] << 8) | bytes[7]);
+            var authorities = (ushort)((bytes[8] << 8) | bytes[9]);
+            var additionals = (ushort)((bytes[10] << 8) | bytes[11]);
+
+            int pos = 12;
+            for (int i = 0; i < questions; ++i)
+            {
+                Question.Add(new Question(ref bytes, ref pos));
+            }
         }
+
     }
 
     public class Flags
@@ -135,6 +146,35 @@ namespace Dns
             QNAME = qname;
             QTYPE = qtype;
             QCLASS = qclass;
+        }
+
+        public Question(ref byte[] bytes, ref int pos)
+        {
+            while (true)
+            {
+                byte typeSize = bytes[pos++];
+                ushort type = (ushort)(typeSize >> 6);
+                if (type == 0)
+                {
+                    ushort size = (ushort)(typeSize & 0x3F);
+                    if (size == 0)
+                    {
+                        if (QNAME.Length == 0)
+                        {
+                            QNAME = ".";
+                        }
+                        break;
+                    }
+                    for (int i = 0; i < size; ++i)
+                    {
+                        QNAME += (char)bytes[pos++];
+                    }
+                    QNAME += '.';
+                }
+            }
+
+            QTYPE = (ushort)((bytes[pos++] << 8) | bytes[pos++]); // don't do this in c++ (no sequence point)
+            QCLASS = (ushort)((bytes[pos++] << 8) | bytes[pos++]);
         }
 
         public void ToBytes(ref List<byte> bytes)

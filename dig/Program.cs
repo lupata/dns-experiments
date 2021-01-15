@@ -41,7 +41,7 @@ namespace dig
                 Console.WriteLine(r.CLASS);
                 Console.WriteLine(r.TTL);
 
-                foreach (var bt in response.Answer[0].RDATA)
+                foreach (var bt in r.RDATA)
                 {
                     Console.WriteLine(bt.ToString());
                 }
@@ -55,7 +55,7 @@ namespace dig
                 Console.WriteLine(r.CLASS);
                 Console.WriteLine(r.TTL);
 
-                foreach (var bt in response.Answer[0].RDATA)
+                foreach (var bt in r.RDATA)
                 {
                     Console.WriteLine(bt.ToString());
                 }
@@ -69,7 +69,7 @@ namespace dig
                 Console.WriteLine(r.CLASS);
                 Console.WriteLine(r.TTL);
 
-                foreach (var bt in response.Answer[0].RDATA)
+                foreach (var bt in r.RDATA)
                 {
                     Console.WriteLine(bt.ToString());
                 }

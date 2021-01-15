@@ -264,6 +264,7 @@ namespace Dns
             ushort rdlength = (ushort)((bytes[pos++] << 8) | bytes[pos++]);
             RDATA = new byte[rdlength];
             Buffer.BlockCopy(bytes, pos, RDATA, 0, rdlength);
+            pos += rdlength;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Dns
 {
@@ -61,6 +62,18 @@ namespace Dns
             for (int i = 0; i < questions; ++i)
             {
                 Question.Add(new Question(ref bytes, ref pos));
+            }
+            for (int i = 0; i < answers; ++i)
+            {
+                Answer.Add(new Resource(ref bytes, ref pos));
+            }
+            for (int i = 0; i < authorities; ++i)
+            {
+                Authority.Add(new Resource(ref bytes, ref pos));
+            }
+            for (int i = 0; i < additionals; ++i)
+            {
+                Additional.Add(new Resource(ref bytes, ref pos));
             }
         }
 
@@ -131,7 +144,53 @@ namespace Dns
         }
     }
 
-    public class Question
+    public class Record
+    {
+        public string ReadName(ref byte[] bytes, ref int pos)
+        {
+            string name = "";
+            int oldPos = 0;
+
+            while (true)
+            {
+                byte typeSize = bytes[pos++];
+                ushort type = (ushort)(typeSize >> 6);
+                if (type == 0)
+                {
+                    ushort size = (ushort)(typeSize & 0x3F);
+                    if (size == 0)
+                    {
+                        if (name.Length == 0)
+                        {
+                            name = ".";
+                        }
+                        if (oldPos != 0)
+                        {
+                            pos = oldPos;
+                        }
+                        return name;
+                    }
+                    for (int i = 0; i < size; ++i)
+                    {
+                        name += (char)bytes[pos++];
+                    }
+                    name += '.';
+                }
+                // FIXME: unsafe for well crafted packets (infinite rekursion)
+                if (type == 3)
+                {
+                    int newPos = (ushort)(((typeSize & 0x3F) << 8) | bytes[pos++]);
+                    if (oldPos == 0)
+                    {
+                        oldPos = pos;
+                    }
+                    pos = newPos;
+                }
+            }
+        }
+    }
+
+    public class Question : Record
     {
         public string QNAME { get; set; }
         public ushort QTYPE { get; set; }
@@ -150,29 +209,7 @@ namespace Dns
 
         public Question(ref byte[] bytes, ref int pos)
         {
-            while (true)
-            {
-                byte typeSize = bytes[pos++];
-                ushort type = (ushort)(typeSize >> 6);
-                if (type == 0)
-                {
-                    ushort size = (ushort)(typeSize & 0x3F);
-                    if (size == 0)
-                    {
-                        if (QNAME.Length == 0)
-                        {
-                            QNAME = ".";
-                        }
-                        break;
-                    }
-                    for (int i = 0; i < size; ++i)
-                    {
-                        QNAME += (char)bytes[pos++];
-                    }
-                    QNAME += '.';
-                }
-            }
-
+            QNAME = ReadName(ref bytes, ref pos);
             QTYPE = (ushort)((bytes[pos++] << 8) | bytes[pos++]); // don't do this in c++ (no sequence point)
             QCLASS = (ushort)((bytes[pos++] << 8) | bytes[pos++]);
         }
@@ -197,8 +234,36 @@ namespace Dns
         }
     }
 
-    public class Resource
+    public class Resource : Record
     {
+        public string NAME { get; set; }
+        public ushort TYPE { get; set; }
+        public ushort CLASS { get; set; }
+        public uint TTL { get; set; }
+        public byte[] RDATA { get; set; }
 
+        public Resource(string name, ushort type, ushort cls, uint ttl, byte[] rdata)
+        {
+            if (!name.EndsWith('.'))
+            {
+                name += '.';
+            }
+            NAME = name;
+            TYPE = type;
+            CLASS = cls;
+            TTL = ttl;
+            RDATA = rdata;
+        }
+        public Resource(ref byte[] bytes, ref int pos)
+        {
+            NAME = ReadName(ref bytes, ref pos);
+            TYPE = (ushort)((bytes[pos++] << 8) | bytes[pos++]); // don't do this in c++ (no sequence point)
+            CLASS = (ushort)((bytes[pos++] << 8) | bytes[pos++]);
+            TTL = (ushort)((bytes[pos++] << 24) | (bytes[pos++] << 16) | (bytes[pos++] << 8) | bytes[pos++]);
+
+            ushort rdlength = (ushort)((bytes[pos++] << 8) | bytes[pos++]);
+            RDATA = new byte[rdlength];
+            Buffer.BlockCopy(bytes, pos, RDATA, 0, rdlength);
+        }
     }
 }

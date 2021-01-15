@@ -18,22 +18,61 @@ namespace dig
             packet.Question.Add(new Dns.Question(question, 1, 1));
             byte[] raw = packet.ToBytes();
 
-            // debug: read it back
-            Dns.Packet response = new Dns.Packet(ref raw);
-            Console.WriteLine(response.Question[0].QNAME);
-            Console.WriteLine(response.Question[0].QTYPE);
-            Console.WriteLine(response.Question[0].QCLASS);
-
             UdpClient client = new UdpClient();
             int send = client.Send(raw, raw.Length, server, 53);
-            Console.WriteLine(" send bytes: " + send.ToString());
 
             IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
             raw = client.Receive(ref remote);
 
-            foreach (var bt in raw)
+            Dns.Packet response = new Dns.Packet(ref raw);
+            Console.WriteLine(" -- Question --");
+            foreach (var q in response.Question)
             {
-                Console.WriteLine(bt.ToString());
+                Console.WriteLine(q.QNAME);
+                Console.WriteLine(q.QTYPE);
+                Console.WriteLine(q.QCLASS);
+            }
+
+            Console.WriteLine(" -- Answer --");
+            foreach (var r in response.Answer)
+            {
+                Console.WriteLine(r.NAME);
+                Console.WriteLine(r.TYPE);
+                Console.WriteLine(r.CLASS);
+                Console.WriteLine(r.TTL);
+
+                foreach (var bt in response.Answer[0].RDATA)
+                {
+                    Console.WriteLine(bt.ToString());
+                }
+            }
+
+            Console.WriteLine(" -- Authority --");
+            foreach (var r in response.Authority)
+            {
+                Console.WriteLine(r.NAME);
+                Console.WriteLine(r.TYPE);
+                Console.WriteLine(r.CLASS);
+                Console.WriteLine(r.TTL);
+
+                foreach (var bt in response.Answer[0].RDATA)
+                {
+                    Console.WriteLine(bt.ToString());
+                }
+            }
+
+            Console.WriteLine(" -- Additional --");
+            foreach (var r in response.Additional)
+            {
+                Console.WriteLine(r.NAME);
+                Console.WriteLine(r.TYPE);
+                Console.WriteLine(r.CLASS);
+                Console.WriteLine(r.TTL);
+
+                foreach (var bt in response.Answer[0].RDATA)
+                {
+                    Console.WriteLine(bt.ToString());
+                }
             }
         }
     }

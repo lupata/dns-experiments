@@ -10,12 +10,25 @@ namespace dig
         {
             string server = args[0];
             string question = args[1];
+            IPAddress address = System.Net.IPAddress.Parse(args[2]);
 
-            System.Net.IPHostEntry serverHost = System.Net.Dns.GetHostEntry(server);
 
             Dns.Packet packet = new Dns.Packet();
             packet.Flags.RD = true;
             packet.Question.Add(new Dns.Question(question, 1, 1));
+            
+
+            Dns.EDNS edns = new Dns.EDNS();
+
+            Dns.Option subnet = new Dns.Option();
+            subnet.Subnet(address);
+            edns.Options.Add(subnet);
+            Dns.Option cookie = new Dns.Option();
+            cookie.Cookie(0x4444444444444444);
+            edns.Options.Add(cookie);
+
+            packet.Additional.Add(new Dns.Resource("", 41, 4096, 0, edns.ToBytes()));
+
             byte[] raw = packet.ToBytes();
 
             UdpClient client = new UdpClient();
@@ -23,6 +36,7 @@ namespace dig
 
             IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
             raw = client.Receive(ref remote);
+
 
             Dns.Packet response = new Dns.Packet(ref raw);
             Console.WriteLine(" -- Question --");

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Dns
 {
     // see
-    // https://tools.ietf.org/html/rfc6895
-    // https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+    // for DNS wire format: https://tools.ietf.org/html/rfc6895
+    // for definitition of parameters: https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+    // for EDNS: https://tools.ietf.org/html/rfc6891
 
     public class Packet
     {
@@ -38,6 +40,18 @@ namespace Dns
             foreach (var question in Question)
             {
                 question.ToBytes(ref bytes);
+            }
+            foreach (var resource in Answer)
+            {
+                resource.ToBytes(ref bytes);
+            }
+            foreach (var resource in Authority)
+            {
+                resource.ToBytes(ref bytes);
+            }
+            foreach (var resource in Additional)
+            {
+                resource.ToBytes(ref bytes);
             }
 
             return bytes.ToArray();
@@ -198,7 +212,7 @@ namespace Dns
 
         public Question(string qname, ushort qtype, ushort qclass)
         {
-            if (!qname.EndsWith('.'))
+            if (qname.Length > 0 && !qname.EndsWith('.'))
             {
                 qname += '.';
             }
@@ -244,7 +258,7 @@ namespace Dns
 
         public Resource(string name, ushort type, ushort cls, uint ttl, byte[] rdata)
         {
-            if (!name.EndsWith('.'))
+            if (name.Length>0 && !name.EndsWith('.'))
             {
                 name += '.';
             }
@@ -265,6 +279,128 @@ namespace Dns
             RDATA = new byte[rdlength];
             Buffer.BlockCopy(bytes, pos, RDATA, 0, rdlength);
             pos += rdlength;
+        }
+
+        public void ToBytes(ref List<byte> bytes)
+        {
+            var labels = NAME.Split('.');
+
+            foreach (var label in labels)
+            {
+                bytes.Add((byte)label.Length);
+                foreach (char c in label)
+                {
+                    bytes.Add((byte)c);
+                }
+            }
+
+            bytes.Add((byte)(TYPE >> 8));
+            bytes.Add((byte)TYPE);
+            bytes.Add((byte)(CLASS >> 8));
+            bytes.Add((byte)CLASS);
+            bytes.Add((byte)(TTL >> 24));
+            bytes.Add((byte)(TTL >> 16));
+            bytes.Add((byte)(TTL >> 8));
+            bytes.Add((byte)TTL);
+
+            bytes.Add((byte)(RDATA.Length >> 8));
+            bytes.Add((byte)RDATA.Length);
+            bytes.AddRange(RDATA);
+        }
+    }
+
+    public class Option
+    {
+        public ushort CODE { get; set; }
+        public byte[] DATA { get; set; }
+
+        public Option()
+        {
+        }
+
+        // fixme: use factory
+        public void Cookie(ulong cookie)
+        {
+            CODE = 10;
+
+            byte[] bytes = BitConverter.GetBytes(cookie);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+
+            DATA = bytes;
+        }
+
+        public void Subnet(IPAddress address)
+        {
+            CODE = 8;
+ 
+            if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                DATA = new byte[4 + 4];
+                DATA[0] = 0;
+                DATA[1] = 1;
+                DATA[2] = 32;
+                DATA[3] = 0;
+            }
+            else if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                DATA = new byte[4 + 16];
+                DATA[0] = 0;
+                DATA[1] = 2;
+                DATA[2] = 128;
+                DATA[3] = 0;
+            }
+
+            Byte[] bytes = address.GetAddressBytes();
+            // todo: verify if GetAddressBytes are already in network order
+            // if (BitConverter.IsLittleEndian)
+            //    Array.Reverse(bytes);
+
+            Buffer.BlockCopy(bytes, 0, DATA, 4, bytes.Length);
+        }
+
+        public void ToBytes(ref List<byte> bytes)
+        {
+            bytes.Add((byte)(CODE >> 8));
+            bytes.Add((byte)CODE);
+
+            bytes.Add((byte)(DATA.Length >> 8));
+            bytes.Add((byte)DATA.Length);
+
+            bytes.AddRange(DATA);
+        }
+
+    }
+
+    // fixme: structure is odd, EDNS should be specialization of Resource (meaning of some fields are redifined)
+    public class EDNS
+    {
+        public List<Option> Options = new List<Option>();
+
+        public byte[] ToBytes()
+        {
+            List<byte> bytes = new List<byte>();
+
+            ToBytes(ref bytes);
+
+            return bytes.ToArray();
+        }
+
+        public void ToBytes(ref List<byte> bytes)
+        {
+            foreach (var option in Options)
+            {
+                option.ToBytes(ref bytes);
+            }
+        }
+
+        public EDNS()
+        {
+
+        }
+        public EDNS(ref byte[] bytes)
+        {
+
         }
     }
 }

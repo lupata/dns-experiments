@@ -29,6 +29,9 @@ namespace dig
 
             packet.Additional.Add(new Dns.Resource("", 41, 4096, 0, edns.ToBytes()));
 
+            // add an non-standard record
+            packet.Additional.Add(new Dns.Resource("", 40, 1, 0x11223344, new byte[0]));
+
             byte[] raw = packet.ToBytes();
 
             UdpClient client = new UdpClient();
